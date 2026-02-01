@@ -8,6 +8,7 @@ import { usePortRegistry } from '../../utils/hooks/usePortRegistry.js';
 
 import Node from './Node.jsx';
 import ConnectionLine from './ConnectionLine.jsx';
+import BranchConnector from './BranchConnector.jsx';
 import NodeMenu from './NodeMenu.jsx';
 import Controls from './Controls.jsx';
 
@@ -24,8 +25,6 @@ export default function WorkflowCanvas() {
   const stageRef = useRef(null);
   const treeRef = useRef(null);
   const ports = usePortRegistry();
-
-  const [stageScale, setStageScale] = useState(1);
 
   const [menu, setMenu] = useState(
     /** @type {{open: boolean, x: number, y: number, parentId: string|null, slot: null|'true'|'false'}} */
@@ -44,11 +43,11 @@ export default function WorkflowCanvas() {
     const stageRect = stageRef.current?.getBoundingClientRect();
     if (!stageRect) return;
 
-    const x = (event.clientX - stageRect.left) / (stageScale || 1);
-    const y = (event.clientY - stageRect.top) / (stageScale || 1);
+    const x = event.clientX - stageRect.left;
+    const y = event.clientY - stageRect.top;
 
     setMenu({ open: true, x, y, parentId, slot });
-  }, [stageScale]);
+  }, []);
 
   const onAddNode = useCallback(
     (nodeType) => {
@@ -157,28 +156,33 @@ export default function WorkflowCanvas() {
   );
 
   const edges = useMemo(() => {
-    /** @type {{fromKey: string, toKey: string}[]} */
-    const list = [];
+    /** @type {{sequence: {fromKey: string, toKey: string}[], branches: {fromKey: string, toTrueKey: string|null, toFalseKey: string|null}[]}} */
+    const out = { sequence: [], branches: [] };
 
     for (const node of Object.values(workflow.nodes)) {
       if (node.type === NODE_TYPES.branch) {
         const t = node.exits?.true ?? null;
         const f = node.exits?.false ?? null;
-        // Use node cards as endpoints so lines originate from the middle of each block edge.
-        if (t) list.push({ fromKey: `node:${node.id}`, toKey: `node:${t}` });
-        if (f) list.push({ fromKey: `node:${node.id}`, toKey: `node:${f}` });
+        out.branches.push({
+          fromKey: `node:${node.id}`,
+          toTrueKey: t ? `node:${t}` : null,
+          toFalseKey: f ? `node:${f}` : null
+        });
       } else {
         const c = node.children[0] ?? null;
-        if (c) list.push({ fromKey: `node:${node.id}`, toKey: `node:${c}` });
+        if (c) out.sequence.push({ fromKey: `node:${node.id}`, toKey: `node:${c}` });
       }
     }
 
-    return list;
+    return out;
   }, [workflow.nodes]);
 
   const [overlayTick, setOverlayTick] = useState(0);
   const recomputeOverlay = useCallback(() => setOverlayTick((v) => v + 1), []);
   useResizeObserver(canvasRef, recomputeOverlay);
+
+  // When nodes resize (label edits, branch layout changes), keep connectors in sync.
+  useResizeObserver(treeRef, recomputeOverlay);
 
   // Recompute lines when ports mount/unmount.
   // (Avoid doing this inside the registry to prevent update-depth loops.)
@@ -186,39 +190,12 @@ export default function WorkflowCanvas() {
     ports.setOnChange(recomputeOverlay);
   }, [ports, recomputeOverlay]);
 
-  // Fit-to-screen scaling: keep the workflow fully inside the canvas (no overflow/scroll).
-  const recomputeScale = useCallback(() => {
-    const canvasEl = canvasRef.current;
-    const treeEl = treeRef.current;
-    if (!canvasEl || !treeEl) return;
-
-    // Use layout sizes (unaffected by transforms).
-    const treeWidth = treeEl.scrollWidth || treeEl.offsetWidth;
-    const treeHeight = treeEl.scrollHeight || treeEl.offsetHeight;
-    if (!treeWidth || !treeHeight) return;
-
-    const padding = 48; // should roughly match canvasContent padding
-    const availableW = Math.max(320, canvasEl.clientWidth - padding * 2);
-    const availableH = Math.max(320, canvasEl.clientHeight - padding * 2);
-
-    const scaleW = availableW / treeWidth;
-    const scaleH = availableH / treeHeight;
-    const next = Math.min(1, scaleW, scaleH);
-
-    // Avoid tiny re-renders due to floating point jitter.
-    const rounded = Math.max(0.25, Math.round(next * 100) / 100);
-    setStageScale(rounded);
-  }, []);
-
   useEffect(() => {
     // Wait a frame so DOM has laid out.
     requestAnimationFrame(() => {
-      recomputeScale();
       recomputeOverlay();
     });
-  }, [workflow.nodes, recomputeScale, recomputeOverlay]);
-
-  useResizeObserver(canvasRef, recomputeScale);
+  }, [workflow.nodes, recomputeOverlay]);
 
   return (
     <div className={styles.canvasShell}>
@@ -235,7 +212,6 @@ export default function WorkflowCanvas() {
           <div
             ref={stageRef}
             className={styles.stage}
-            style={{ transform: `scale(${stageScale})` }}
           >
             <svg className={styles.svgOverlay} aria-hidden="true">
             <defs>
@@ -252,12 +228,22 @@ export default function WorkflowCanvas() {
               </marker>
             </defs>
 
-            {edges.map((edge, idx) => (
+            {edges.sequence.map((edge, idx) => (
               <ConnectionLine
                 // overlayTick forces re-render when ResizeObserver/scroll triggers
-                key={`${edge.fromKey}->${edge.toKey}:${idx}:${overlayTick}`}
+                key={`seq:${edge.fromKey}->${edge.toKey}:${idx}:${overlayTick}`}
                 fromEl={ports.get(edge.fromKey)}
                 toEl={ports.get(edge.toKey)}
+                containerEl={stageRef.current}
+              />
+            ))}
+
+            {edges.branches.map((edge, idx) => (
+              <BranchConnector
+                key={`br:${edge.fromKey}:${idx}:${overlayTick}`}
+                fromEl={ports.get(edge.fromKey)}
+                toTrueEl={edge.toTrueKey ? ports.get(edge.toTrueKey) : null}
+                toFalseEl={edge.toFalseKey ? ports.get(edge.toFalseKey) : null}
                 containerEl={stageRef.current}
               />
             ))}
