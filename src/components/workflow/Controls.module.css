@@ -1,0 +1,37 @@
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.left,
+.right {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  border: 1px solid rgba(11, 18, 32, 0.12);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(11, 18, 32, 0.08);
+  backdrop-filter: blur(6px);
+  transition: background 140ms ease, transform 140ms ease, border-color 140ms ease;
+}
+
+.btn:hover:not(:disabled) {
+  background: rgba(15, 23, 42, 0.04);
+  transform: translateY(-1px);
+  border-color: rgba(11, 18, 32, 0.18);
+}
+
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

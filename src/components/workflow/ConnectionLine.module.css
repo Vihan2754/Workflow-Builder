@@ -1,0 +1,9 @@
+.path {
+  fill: none;
+  stroke: rgba(71, 85, 105, 0.55);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 1;
+  filter: drop-shadow(0 10px 18px rgba(11, 18, 32, 0.08));
+}

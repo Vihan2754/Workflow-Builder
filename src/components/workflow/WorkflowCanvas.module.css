@@ -1,0 +1,105 @@
+.canvasShell {
+  height: 100%;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
+}
+
+.canvas {
+  position: relative;
+  height: 100%;
+  min-height: 520px;
+  background:
+    radial-gradient(800px 540px at 15% 0%, rgba(37, 99, 235, 0.10), transparent 55%),
+    radial-gradient(760px 520px at 85% 20%, rgba(99, 102, 241, 0.08), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.62));
+  background-color: rgba(255, 255, 255, 0.72);
+  background-image:
+    radial-gradient(800px 540px at 15% 0%, rgba(37, 99, 235, 0.10), transparent 55%),
+    radial-gradient(760px 520px at 85% 20%, rgba(99, 102, 241, 0.08), transparent 60%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(255, 255, 255, 0.62)),
+    repeating-linear-gradient(0deg, rgba(11, 18, 32, 0.05) 0, rgba(11, 18, 32, 0.05) 1px, transparent 1px, transparent 22px),
+    repeating-linear-gradient(90deg, rgba(11, 18, 32, 0.05) 0, rgba(11, 18, 32, 0.05) 1px, transparent 1px, transparent 22px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.canvasContent {
+  position: relative;
+  min-width: 100%;
+  min-height: 100%;
+  padding: 32px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.stage {
+  position: relative;
+  transform-origin: top center;
+}
+
+.tree {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 100%;
+}
+
+.treeRow {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.singleChild {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.branchContainer {
+  display: flex;
+  gap: 40px;
+  margin-top: 20px;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+.branchPath {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.branchLabel {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  margin-bottom: 14px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(11, 18, 32, 0.06);
+  border: 1px solid rgba(11, 18, 32, 0.10);
+}
+
+.svgOverlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.tree {
+  z-index: 2;
+}

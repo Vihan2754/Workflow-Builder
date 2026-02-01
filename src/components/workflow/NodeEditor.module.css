@@ -1,0 +1,32 @@
+.labelButton {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 6px 8px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: text;
+  color: var(--text);
+  transition: background 140ms ease;
+}
+
+.labelButton:hover {
+  background: rgba(15, 23, 42, 0.04);
+}
+
+.input {
+  width: 100%;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(37, 99, 235, 0.3);
+  outline: none;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.input:focus {
+  border-color: rgba(37, 99, 235, 0.55);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.12);
+}
